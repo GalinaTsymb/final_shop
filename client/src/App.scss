@@ -1,0 +1,176 @@
+@import  "~bootstrap/scss/bootstrap" ;
+
+.ts_message{
+  padding: 10px;
+  font-size: 1rem;
+  line-height: 1.3;
+  color: #000000;
+  font-family: Verdana, sans-serif;
+  position: absolute;
+  border: 1px solid rgba(52, 58, 64, 0.5);
+  border-radius: 10px;
+  background: #CECECE;
+}
+.ts_login{
+  width: 600px;
+
+  &__title{
+    color: #0060b1;
+    font-family: Verdana, sans-serif;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    text-align: center;
+  }
+}
+.ts_cart_img{
+  width: 100%;
+  height: 240px;
+}
+.ts_cursor{
+  cursor: pointer;
+}
+.ts_cart{
+  width: 240px;
+  padding: 10px;
+}
+.ts_main_color{
+  color: #0060b1;
+}
+.ts_secondary_color{
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 10px 0;
+  margin-bottom: 30px;
+
+}
+.ts_active{
+  transition: color 0.15s ease-in-out,
+              background-color 0.15s ease-in-out,
+              border-color 0.15s ease-in-out,
+              box-shadow 0.15s ease-in-out;
+
+  &:hover, &:active{
+    color: #FF0;
+    background-color: #6c757d;
+    border-color: #6c757d;
+  }
+}
+.ts_category_item{
+  transition:  color 0.15s ease-in-out, font-weight 0.15s ease-in-out;
+
+  &:hover, &:active, &:focus{
+    color: rgba(255, 255, 0, 1);
+    font-weight: bold;
+    transition: color 0.15s ease-in-out, font-weight 0.15s ease-in-out;
+  }
+}
+.ts_product_wrapper{
+  margin-top: 50px;
+}
+.ts_product_text{
+  display: flex;
+  flex-direction: column;
+}
+.ts_product_text{
+  color: #636E75;
+  font-family: Verdana, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+
+  .name{
+      position: relative;
+    & span:first-child{
+      font-size: 14px;
+      display: block;
+      margin-bottom: 10px;
+    }
+    & span:last-child{
+      margin-bottom: 15px;
+      font-size: 20px;
+      display: block;
+    }
+    &:before{
+      content: '';
+      width: 50%;
+      height: 1px;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      background:#636E75 ;
+    }
+  }
+  .size{
+    margin-bottom: 10px;
+    margin-top: 20px;
+
+    & span:last-child{
+      padding: 2px 10px;
+      background: linear-gradient(to bottom, #f8f8f8 0%, #f0f0f0 100%);
+      border-radius: 3px;
+      border: 1px solid #CECECE;
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #212529;
+      }
+  }
+  .color{
+
+    & span:last-child{
+      display: inline-block;
+      border: 1px solid #CCCCCC;
+      border-radius: 4px;
+      width: 25px;
+      height: 25px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+  }
+  .code{
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+  .qty{
+    margin-bottom: 20px;
+  }
+}
+.ts_price{
+  font-size: 23px;
+  color: #ff4800;
+  font-weight: bold;
+  margin-right: 0px;
+  margin-left: 30px;
+  margin-top: 5px;
+  vertical-align: middle;
+}
+.ts_tab{
+  margin-top: 30px;
+}
+.ts_tab_item{
+  padding: 30px 30px;
+
+  &__desc{
+    margin-top: 10px;
+  }
+
+  &__title{
+    margin-top: 30px;
+    color: #636E75;
+    font-family: Verdana, sans-serif;
+    font-size: 16px;
+    font-weight: normal;
+  }
+
+  &__text{
+    font-size: 14px;
+    color: #636E75;
+    font-family: Verdana, sans-serif;
+  }
+}
+.ts_not{
+  color: red;
+}
+.ts_yes{
+  color: #0060b1
+}
