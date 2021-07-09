@@ -3,7 +3,7 @@ const ApiError = require('../error/ApiError');
 
 class CategoriesModel {
 
-   async getAll(req, res){
+   async getAll(){
        try{
            const category = await dataBase.promise().query(`SELECT * FROM categories`);
            return  category[0];

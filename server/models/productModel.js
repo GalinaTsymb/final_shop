@@ -18,7 +18,6 @@ class ProductModel {
             const products = await dataBase.promise().query(`SELECT * FROM products as Pr JOIN structure as St WHERE id_prod BETWEEN ${start} AND ${end} AND Pr.id_structure = St.id_structure `)
             return products[0];
         }catch(error){
-            console.log('dddd');
             return ApiError.badRequest('Request not found');
         }
     }

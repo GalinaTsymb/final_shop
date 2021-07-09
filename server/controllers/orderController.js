@@ -6,7 +6,6 @@ class OrderController {
     async createOrder(req, res){
         const orderInfo = req.body;
         const idOrder = await orderModel.create(orderInfo);
-        console.log('ordre', idOrder);
         return res.json(idOrder);
     }
     async createOrderDetails(req, res) {

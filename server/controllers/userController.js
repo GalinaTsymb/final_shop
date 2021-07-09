@@ -52,8 +52,6 @@ class UserController{
 
         try{
             const {email, password} = req.body;
-            console.log('email', email);
-            console.log('password', password);
             //проверяем существует ли пользователь с таки login
             const user = await userModel.getUser(email);
 

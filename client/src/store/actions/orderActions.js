@@ -66,8 +66,4 @@ export const getDetailsOrder = (id_order) => async (dispatch) => {
         dispatch({type: ORDER_DETAILS_FAILURE, payload: error})
     }
 };
-/*
-export const clearOrder = () => async (dispatch) => {
-    dispatch({type: CLEAR_ORDER});
-};
-*/
+

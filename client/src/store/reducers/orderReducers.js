@@ -26,8 +26,6 @@ function orderReducer (state={ orders: [], orderDetails: [] }, action){
             return {...state, loadingDetails: false, detailsError: false, orderDetails: action.payload};
         case ORDER_DETAILS_FAILURE:
             return {...state, loadingDetails: false, detailsError:true, error: action.payload};
-       /* case CLEAR_ORDER:
-            return {...state, loadingDetails: false, detailsError:false, order: [] };*/
         default: return state;
     }
 }

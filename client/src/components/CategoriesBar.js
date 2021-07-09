@@ -56,7 +56,6 @@ const CategoriesBar = () => {
                                                 >
                                         {item.name_category}
                                 </ListGroup.Item>
-
                             );
                         })}
                     </>
