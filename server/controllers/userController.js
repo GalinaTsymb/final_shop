@@ -25,47 +25,69 @@ class UserController{
             return next(ApiError.badRequest('Неккоректный name или telephone или email или password'));
         }
         //проверяем есть ли в базе такой уже пользователь
-        const candidate = await userModel.getUser(email);
+        const [candidate] = await userModel.getUser(email);
+
         //если есть
-        if(candidate.email){
-            return next(ApiError.badRequest('Пользователь с таким login уже существует'));
+        if(candidate){
+
+            return res.status(400).send({
+                statusText: 'Пользователь с таким email уже существует. Попробуйте еще раз!!!'
+            });
+
+        }else{
+            //кэшируем пароль и создаем нового пользователя
+            const hashPassword = await bcrypt.hash(password, 5);
+            const user = await userModel.create(name, email, phone, hashPassword);
+
+            // сразу для пользователя создаем корзину
+            const cart = await cartModel.create(user); // надо проверить как возвращается user id
+
+            return res.status(200).send({
+                statusText: 'Вы успешно зарегистрировались'
+            });
         }
-        //кэшируем пароль и создаем нового пользователя
-        const hashPassword = await bcrypt.hash(password, 5);
-        const user = await userModel.create(name, email, phone, hashPassword);
-
-        // сразу для пользователя создаем корзину
-        const cart = await cartModel.create(user); // надо проверить как возвращается user id
-
-        return res.json(200);
     }
 
-    async login (req, res, next){
-        const {email, password} = req.body;
+    async login (req, res){
 
-        //проверяем существует ли пользователь с таки login
-        const user = await userModel.getUser(email);
+        try{
+            const {email, password} = req.body;
+            console.log('email', email);
+            console.log('password', password);
+            //проверяем существует ли пользователь с таки login
+            const user = await userModel.getUser(email);
 
-        if(!user){
-            return next(ApiError.internal('Пользователь не найден с таким login'));
+            if(user.length === 0){
+                return res.status(400).send({
+                    statusText: 'Пользователь не найден с таким login. Попробуйте еще раз или зарегистрируйтесь!!!'
+                });
+            }
+            // если логин - ок, проверяем пароль - совпадает ли он с тем что ввел пользователь
+            let comparePassword = bcrypt.compareSync(password, user[0].password );
+            if(!comparePassword){
+                return res.status(400).send({
+                    statusText: 'Неверный пароль!!!'
+                });
+            }
+            const token = generateJwt(user[0].email_user, password);
+            return res.json({user: user[0].email_user, token});
+        }catch(error){
+            return res.status(400).send({
+                statusText: 'Упсс'
+            });
         }
-        // если логин - ок, проверяем пароль - совпадает ли он с тем что ввел пользователь
-        let comparePassword = bcrypt.compareSync(password, user[0].password );
-        if(!comparePassword){
-            return next(ApiError.internal('Указан неверный пароль'));
-        }
-        const token = generateJwt(user[0].email_user, password);
-        return res.json({token});
     }
 
     async getUser( req, res){
-
-        const {email} = req.body;
-
-        const user = await userModel.getUser(email);
-
+        const {login} = req.body;
+        const [user] = await userModel.getUser(login);
         return res.json(user);
     }
+   async updateUser( req, res){
+       const userNewInfo = req.body;
+       const data = await userModel.updateUser(userNewInfo);
+       return res.json(data);
+   }
 
 }
 

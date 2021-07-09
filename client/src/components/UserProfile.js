@@ -1,112 +1,149 @@
-import React, { useEffect} from 'react';
+import React, {useState} from 'react';
 import {Form} from "react-bootstrap";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import {useDispatch, useSelector} from "react-redux";
-import jwt_decode from "jwt-decode";
-import {getUserProfile} from "../store/actions/user";
+import Checkout from "./Checkout";
+import Container from "react-bootstrap/Container";
+import {PAYMENT_ROUTE} from "../utils/consts";
+import {Link} from "react-router-dom";
+import {clearUserStatus, updateUser} from "../store/actions/userAction";
+import Message from "./Message";
+import Loading from "./Loading";
+import useInput from "../hooks/useInput";
 
-/*const INITIAL_STATE = {
-    name_user: "",
-    surname: "",
-    city: "",
-    address: "",
-    phone_user: "",
-    branchNP: "",
-    email_user: "",
-    password: ""
-};*/
 
- const UserProfile = (props) => {
+const UserProfile = (props) => {
+
+    const {userInfo} = useSelector(state => state.userLogin);
+
+    const {userProfile,loadingProfile,statusCode, loadingUpdateDB, errorUpdateDB} = useSelector(state => state.userProfile);
+
     const dispatch = useDispatch();
-    const {userInfo} = useSelector(
-        state => state.userLogin
-    );
 
-    let decodeToken;
-    if(userInfo) { decodeToken = jwt_decode(userInfo.token);}
+    const name      = useInput(userProfile.name, {onlyLetters: false});
+    const surname   = useInput(userProfile.surname,{onlyLetters: false});
+    const city      = useInput(userProfile.city,{onlyLetters: false});
+    const address   = useInput(userProfile.address, {});
+    const phone     = useInput(userProfile.phone, {telValid: false});
+    const branchNP  = useInput(userProfile.branchNP, {numValid: false});
 
-    const {user, fetchingProfileUser, userProfileError} = useSelector(
-        state => state.userProfile
-    );
+    const [validated, setValidated] = useState(false);
 
-    useEffect(()=>{
+    //monitors changes in form fields
+    let [isFormChange, setIsFormChange] = useState(false);
 
-        dispatch(getUserProfile(decodeToken.email));
+    const isEmpty = !name.value || !surname.value || !city.value|| !address.value || !phone.value || !branchNP.value;
 
-    }, [dispatch]);
+    const isProfile = props.location && props.location.pathname === '/profile';
 
-     const handleChange = (event) => {
-         /*user[0].name_user = event.target.value;*/
-     };
-/*    const handleInput = (e) => {
-        console.log(e.target.name, " : ", e.target.value);
-        setUserNew({ ...userNew, [e.target.name]: e.target.value });
-    };*/
-    const submit = e => {
-        console.log('form')
+    const submitHandler = event => {
+
+        const form = event.currentTarget;
+
+        if (form.checkValidity() === false) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        setValidated(true);
+        if(form.checkValidity() === true){
+            event.preventDefault();
+            dispatch(updateUser(userProfile.id_user, name.value, surname.value, city.value, address.value, phone.value, branchNP.value))
+            setIsFormChange(false);
+            setTimeout(() => { dispatch(clearUserStatus())}, 2000)
+        }
     };
-    return (
+    const handlePayment = () => {
+        props.history.push(PAYMENT_ROUTE);
+    };
 
-        <Form  onSubmit={submit}>
-            {!fetchingProfileUser  && !userProfileError && user && (
-                <>
-            <Form.Row>
-               <Form.Group as={Col} controlId="formGridName">
-                    <Form.Label>Имя</Form.Label>
-                    <Form.Control type="text" name="name_user" value={user[0].name_user} onChange={handleChange}
-                                   />
-                </Form.Group>
-                <Form.Group as={Col} controlId="formGridSurname">
-                    <Form.Label>Фамилия</Form.Label>
-                    <Form.Control type="text" name="surname" placeholder="Введите телефон" value={user[0].surname}
-                                    />
-                </Form.Group>
-            </Form.Row>
-           <Form.Row>
-                <Form.Group as={Col} controlId="formGridCity">
-                <Form.Label>Город</Form.Label>
-                <Form.Control type="text" name="city" placeholder="Введите город" value={user[0].city}
-                               />
-            </Form.Group>
-                <Form.Group as={Col} controlId="formGridAddress">
-                    <Form.Label>Адресс</Form.Label>
-                    <Form.Control type="text" placeholder="Введите адресс" name="address" value={user[0].address}
-                                    />
-                </Form.Group>
-            </Form.Row>
-            <Form.Row>
-                <Form.Group as={Col} controlId="formGridPhone">
-                    <Form.Label>Телефон</Form.Label>
-                    <Form.Control type="text" name="phone_user" placeholder="Введите телефон" value={user[0].phone_user}
-                                   />
-                </Form.Group>
-                <Form.Group as={Col} controlId="formGridBranchNP">
-                    <Form.Label>Отделение Новой почты</Form.Label>
-                    <Form.Control type="text" name="branchNP" value={user[0].branchNP}
-                                   />
-                </Form.Group>
-            </Form.Row>
-            <Form.Row>
-                <Form.Group as={Col} controlId="formGridEmail">
-                    <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" name="email_user" placeholder="Введите телефон" value={user[0].email_user}
-                                    />
-                </Form.Group>
-                <Form.Group as={Col} controlId="formGridPassword">
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control type="password" name="password" value={user[0].password}
-                                    />
-                </Form.Group>
-            </Form.Row>
-            <div className="text-right">
-                <Button  variant="primary" type="submit" >
-                    Обновить данные
-                </Button>
-            </div>
-            </>
+    return (
+        <Container className="flex-grow-1 flex-shrink-1">
+            { isProfile && <Checkout step1 />}
+            <Form noValidate validated={validated}  onSubmit={submitHandler}>
+                { loadingProfile ? <Loading/> : (
+                    <>
+                        <Form.Row>
+                            <Form.Group as={Col} controlId="formGridName">
+                                <Form.Label>Имя</Form.Label>
+                                { (name.isDirty && name.textError) && <div className="ts_error-message">{name.message}</div>}
+                                <Form.Control type="text" name="name_user" readOnly={isProfile} style={!name.value?{borderColor: 'red'}:{color: 'grey'}} required value={name.value || undefined}
+                                              onChange={ (e) => { name.onChange(e); setIsFormChange(true);}} onBlur={ (e) => name.onBlur(e)}/>
+                            </Form.Group>
+
+                            <Form.Group as={Col} controlId="formGridSurname">
+                                <Form.Label>Фамилия</Form.Label>
+                                { (surname.isDirty && surname.textError) && <div className="ts_error-message">{surname.message}</div>}
+                                <Form.Control type="text" name="surname" readOnly={isProfile} style={!surname.value?{borderColor: 'red'}:{color: 'grey'}} required placeholder="Введите фамилию" value={surname.value || undefined}
+                                              onChange={ (e) => { surname.onChange(e); setIsFormChange(true);}} onBlur={ (e) => surname.onBlur(e)}/>
+                            </Form.Group>
+
+                        </Form.Row>
+                        <Form.Row>
+                            <Form.Group as={Col} controlId="formGridCity">
+                                <Form.Label>Город</Form.Label>
+                                {(city.isDirty && city.textError) && <div className="ts_error-message">{city.message}</div>}
+                                <Form.Control type="text" name="city" readOnly={isProfile} style={!city.value?{borderColor: 'red'}:{color: 'grey'}} required placeholder="Введите город" value={city.value || undefined}
+                                              onChange={ (e) => { city.onChange(e); setIsFormChange(true);}} onBlur={ (e) => city.onBlur(e)}/>
+                            </Form.Group>
+
+                            <Form.Group as={Col} controlId="formGridAddress">
+                                <Form.Label>Адресс</Form.Label>
+                                <Form.Control type="text" placeholder="Введите адресс" readOnly={isProfile} name="address" style={!address.value?{borderColor: 'red'}:{color: 'grey'}} required value={address.value || undefined}
+                                              onChange={ (e) => { address.onChange(e); setIsFormChange(true);}} onBlur={ (e) => address.onBlur(e)}/>
+                            </Form.Group>
+
+                        </Form.Row>
+                        <Form.Row>
+                            <Form.Group as={Col} controlId="formGridPhone">
+                                <Form.Label>Телефон</Form.Label>
+                                {(phone.isDirty && phone.telError) && <div className="ts_error-message">{phone.message}</div>}
+                                <Form.Control type="text" name="phone_user" readOnly={isProfile} style={!phone.value?{borderColor: 'red'}:{color: 'grey'}} required placeholder="Введите телефон" value={phone.value || undefined}
+                                              onChange={ (e) => { phone.onChange(e); setIsFormChange(true);}} onBlur={ (e) => phone.onBlur(e)}/>
+                            </Form.Group>
+
+                            <Form.Group as={Col} controlId="formGridBranchNP">
+                                <Form.Label>Отделение Новой почты</Form.Label>
+                                {(branchNP.isDirty && branchNP.numError) && <div className="ts_error-message">{branchNP.message}</div>}
+                                <Form.Control type="text" name="branchNP" readOnly={isProfile} style={!branchNP.value?{borderColor: 'red'}:{color: 'grey'}} required value={branchNP.value || undefined}
+                                              onChange={ (e) => { branchNP.onChange(e); setIsFormChange(true);}} onBlur={ (e) => branchNP.onBlur(e)}/>
+                            </Form.Group>
+                        </Form.Row>
+
+
+                        { isProfile ?
+                            <>
+                                <div>
+                                    {
+                                        isEmpty ? <span className="d-block text-danger">У Вас есть незаполненые данные!!!</span> :
+                                            <span className="d-block text-danger">Внимательно, проверьте Ваши данные!!!</span>
+                                    }
+                                    <span>Внести изменения можно  - <Link to="/user">тут</Link></span></div>
+                                <div className="text-right">
+                                    <Button type="button" onClick={handlePayment} className="ml-3 btn btn-success" disabled={isEmpty} >Далее</Button>
+                                </div>
+                            </>
+                            :
+                            <>
+                                <div className="font-italic">Изменения данных: введите новое значение в поле, затем нажмите кнопку Обновить данные </div>
+                                <div className="text-right">
+                                    <Button  variant="primary" disabled={!isFormChange || !name.inputValid || !phone.inputValid || !surname.inputValid || !phone.inputValid || !branchNP.inputValid} type="submit" >
+                                        Обновить данные
+                                    </Button>
+                                </div>
+                            </>
+                        }
+
+                        {
+                            !loadingUpdateDB && !errorUpdateDB  && statusCode === 200 ?
+
+                                <Message key={1} message={'Ваши данные успешно обновлены'} /> : errorUpdateDB ?
+                                <Message key={1} message={'Упсс... Что-то пошло не так!!! Попробуйте еще раз'}  /> : ''
+                        }
+                    </>
                 )}
-        </Form>
+            </Form>
+        </Container>
     );
 };
 

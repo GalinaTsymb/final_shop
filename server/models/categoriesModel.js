@@ -1,4 +1,5 @@
 const dataBase = require('../config/db.config');
+const ApiError = require('../error/ApiError');
 
 class CategoriesModel {
 
@@ -7,7 +8,7 @@ class CategoriesModel {
            const category = await dataBase.promise().query(`SELECT * FROM categories`);
            return  category[0];
        }catch{
-           res.status(401).json({message: "Не удается обработать запрос"});
+           return ApiError.badRequest('Request not found');
        }
     }
 }

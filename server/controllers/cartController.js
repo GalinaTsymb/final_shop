@@ -3,16 +3,30 @@ const cartModel = require('../models/cartModel');
 class CartController {
 
     async getUserCart(req, res){
-        const email = req.body.email;
-        const userCart= await cartModel.getUserCart(email);
-        return res.json(userCart);
+        const loginUser = req.body.login;
+        const userCartId = await cartModel.getUserCart(loginUser);
+        return res.json(userCartId);
     }
-    async addPtoductInCart(req, res){
-        const idCart = req.body.id_cart;
-        const idProduct = req.body.id_prod;
-        const qty = req.body.qty;
-        const cartProduct = await cartModel.addPtoductInCart(idCart, idProduct, qty);
 
+    async getUserCartList(req, res){
+
+        const userLogin = req.body.login;
+        const userCartList = await cartModel.getUserCartList(userLogin);
+        return res.json(userCartList);
+    }
+
+    async addProductInCart(req, res){
+
+        const cartId = req.body.id_cart.id_cart;
+        const idProduct = req.body.productId;
+        const cartProduct = await cartModel.addPtoductInCart(cartId, idProduct);
+        return res.json(cartProduct);
+    }
+    async deleteProductFromCart (req, res){
+        const cartId = req.body.id_cart.id_cart;
+        const idProduct = req.body.productId;
+        const cartProduct = await cartModel.deleteProductFromCart(cartId, idProduct);
+        return res.json(cartProduct);
     }
 }
 module.exports = new CartController();

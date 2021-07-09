@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Июн 15 2021 г., 11:06
+-- Время создания: Июл 09 2021 г., 17:22
 -- Версия сервера: 10.3.22-MariaDB
 -- Версия PHP: 7.1.33
 
@@ -21,6 +21,29 @@ SET time_zone = "+00:00";
 -- База данных: `t_shirt_shop`
 --
 
+DELIMITER $$
+--
+-- Процедуры
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCart` ()  BEGIN
+UPDATE cart C SET
+C.qty_total = (SELECT SUM(CP.qty) FROM cart_to_products CP WHERE CP.id_cart = C.id_cart),
+C.total_sum = (SELECT SUM(CP.sum_product) FROM cart_to_products CP WHERE CP.id_cart = C.id_cart);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCartToProducts` ()  BEGIN
+UPDATE cart_to_products CP SET
+CP.sum_product = CP.qty * (SELECT P.price_prod FROM products P WHERE P.id_prod = CP.id_product);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateOrders` ()  BEGIN
+UPDATE orders O SET
+O.total_sum = (SELECT SUM(Od.summa) FROM order_details Od WHERE Od.id_order = O.id_order),
+O.sum_delivery = (SELECT D.price_delivery FROM deliveries D WHERE O.id_delivery = D.id_delivery);
+END$$
+
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -30,6 +53,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `cart` (
   `id_cart` int(10) NOT NULL,
   `id_user` int(10) NOT NULL,
+  `qty_total` int(255) DEFAULT NULL,
   `total_sum` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
@@ -37,11 +61,21 @@ CREATE TABLE `cart` (
 -- Дамп данных таблицы `cart`
 --
 
-INSERT INTO `cart` (`id_cart`, `id_user`, `total_sum`) VALUES
-(1, 1, NULL),
-(2, 2, NULL),
-(3, 3, NULL),
-(4, 4, NULL);
+INSERT INTO `cart` (`id_cart`, `id_user`, `qty_total`, `total_sum`) VALUES
+(1, 1, NULL, NULL),
+(2, 2, NULL, NULL),
+(3, 3, NULL, NULL),
+(5, 5, NULL, NULL),
+(6, 6, NULL, NULL),
+(7, 7, NULL, NULL),
+(8, 8, NULL, NULL),
+(9, 9, NULL, NULL),
+(10, 10, NULL, NULL),
+(11, 11, NULL, NULL),
+(12, 12, NULL, NULL),
+(13, 13, NULL, NULL),
+(14, 14, NULL, NULL),
+(15, 15, 2, '610.00');
 
 -- --------------------------------------------------------
 
@@ -55,6 +89,13 @@ CREATE TABLE `cart_to_products` (
   `qty` int(100) NOT NULL,
   `sum_product` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Дамп данных таблицы `cart_to_products`
+--
+
+INSERT INTO `cart_to_products` (`id_cart`, `id_product`, `qty`, `sum_product`) VALUES
+(15, 5, 2, '610.00');
 
 -- --------------------------------------------------------
 
@@ -121,6 +162,14 @@ CREATE TABLE `deliveries` (
   `image` varchar(100) COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
+--
+-- Дамп данных таблицы `deliveries`
+--
+
+INSERT INTO `deliveries` (`id_delivery`, `name_delivery`, `price_delivery`, `description`, `image`) VALUES
+(1, 'Новая Почта - отделение', '60.00', 'Доставка в отделение Новой Почты. Посылка доставляется в течение 1-3 рабочих дней с даты отправки заказа. Посылку следует забрать в течение 5-ти дней с момента доставки. По прошествии 5-ти дней компанией Новая Почта взымается доплата за хранение отправления.', 'nova-post.jpg'),
+(2, 'Новая почта - курьер', '105.00', 'Курьер звонит Получателю за 30-60 минут до прибытия по адресу, указанному в экспресс-накладной. Доставка по адресу осуществляется до 21:00 в будние дни и в выходные дни по специальному графику.', 'courier.jpg');
+
 -- --------------------------------------------------------
 
 --
@@ -129,13 +178,42 @@ CREATE TABLE `deliveries` (
 
 CREATE TABLE `orders` (
   `id_order` int(10) NOT NULL,
-  `data_order` date NOT NULL,
+  `data_order` date NOT NULL DEFAULT current_timestamp(),
   `id_user` int(10) NOT NULL,
-  `total_sum` decimal(10,2) NOT NULL,
+  `total_sum` decimal(10,2) DEFAULT NULL,
   `id_payment` int(10) NOT NULL,
   `id_delivery` int(10) NOT NULL,
-  `status` tinyint(1) NOT NULL
+  `sum_delivery` decimal(10,2) DEFAULT NULL,
+  `status` varchar(50) COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Дамп данных таблицы `orders`
+--
+
+INSERT INTO `orders` (`id_order`, `data_order`, `id_user`, `total_sum`, `id_payment`, `id_delivery`, `sum_delivery`, `status`) VALUES
+(1, '2021-07-06', 1, '1316.00', 2, 2, '105.00', 'in process'),
+(2, '2021-07-06', 1, '1011.00', 1, 1, '60.00', 'in process'),
+(3, '2021-07-06', 1, '2172.00', 1, 1, '60.00', 'in process'),
+(4, '2021-07-06', 1, '648.00', 1, 2, '105.00', 'in process'),
+(5, '2021-07-07', 1, '2605.00', 1, 1, '60.00', 'in process'),
+(6, '2021-07-08', 2, '2301.00', 1, 1, '60.00', 'in process'),
+(7, '2021-07-09', 1, '324.00', 1, 1, '60.00', 'in process'),
+(8, '2021-07-09', 1, '2626.00', 1, 1, '60.00', 'in process'),
+(9, '2021-07-09', 7, '1944.00', 1, 1, '60.00', 'in process'),
+(10, '2021-07-09', 2, '11369.00', 1, 1, '60.00', 'in process'),
+(11, '2021-07-09', 8, '3668.00', 1, 1, '60.00', 'in process'),
+(12, '2021-07-09', 8, '610.00', 1, 1, '60.00', 'in process'),
+(13, '2021-07-09', 8, '1408.00', 2, 1, '60.00', 'in process'),
+(14, '2021-07-09', 8, '305.00', 1, 1, '60.00', 'in process'),
+(15, '2021-07-09', 8, '674.00', 2, 1, '60.00', 'in process'),
+(16, '2021-07-09', 8, '367.00', 1, 1, '60.00', 'in process'),
+(17, '2021-07-09', 9, '1920.00', 1, 1, '60.00', 'in process'),
+(18, '2021-07-09', 10, '324.00', 1, 1, '60.00', 'in process'),
+(19, '2021-07-09', 10, '632.00', 1, 2, '105.00', 'in process'),
+(20, '2021-07-09', 10, '1011.00', 1, 1, '60.00', 'in process'),
+(21, '2021-07-09', 14, '648.00', 1, 1, '60.00', 'in process'),
+(22, '2021-07-09', 15, '1685.00', 1, 1, '60.00', 'in process');
 
 -- --------------------------------------------------------
 
@@ -144,13 +222,55 @@ CREATE TABLE `orders` (
 --
 
 CREATE TABLE `order_details` (
-  `id` int(10) NOT NULL,
   `id_order` int(10) NOT NULL,
   `id_product` int(10) NOT NULL,
   `qty` int(100) NOT NULL,
   `price` decimal(10,2) NOT NULL,
-  `summa` decimal(10,2) NOT NULL
+  `summa` decimal(10,2) GENERATED ALWAYS AS (`qty` * `price`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Дамп данных таблицы `order_details`
+--
+
+INSERT INTO `order_details` (`id_order`, `id_product`, `qty`, `price`) VALUES
+(1, 5, 1, '305.00'),
+(1, 3, 3, '337.00'),
+(2, 2, 3, '337.00'),
+(3, 2, 1, '337.00'),
+(3, 6, 5, '367.00'),
+(4, 1, 2, '324.00'),
+(5, 1, 7, '324.00'),
+(5, 2, 1, '337.00'),
+(6, 1, 2, '324.00'),
+(6, 2, 4, '337.00'),
+(6, 5, 1, '305.00'),
+(7, 1, 1, '324.00'),
+(8, 4, 7, '327.00'),
+(8, 2, 1, '337.00'),
+(9, 1, 2, '324.00'),
+(9, 1, 2, '324.00'),
+(9, 1, 2, '324.00'),
+(10, 3, 26, '337.00'),
+(10, 1, 3, '324.00'),
+(10, 4, 5, '327.00'),
+(11, 1, 3, '324.00'),
+(11, 2, 8, '337.00'),
+(12, 5, 2, '305.00'),
+(13, 6, 2, '367.00'),
+(13, 3, 2, '337.00'),
+(14, 5, 1, '305.00'),
+(15, 2, 2, '337.00'),
+(16, 6, 1, '367.00'),
+(17, 1, 3, '324.00'),
+(17, 3, 2, '337.00'),
+(17, 9, 1, '274.00'),
+(18, 1, 1, '324.00'),
+(19, 5, 1, '305.00'),
+(19, 4, 1, '327.00'),
+(20, 2, 3, '337.00'),
+(21, 1, 2, '324.00'),
+(22, 2, 5, '337.00');
 
 -- --------------------------------------------------------
 
@@ -162,8 +282,16 @@ CREATE TABLE `payment` (
   `id_payment` int(10) NOT NULL,
   `name` varchar(100) COLLATE utf8_bin NOT NULL,
   `description_payment` text COLLATE utf8_bin NOT NULL,
-  `image` varchar(10) COLLATE utf8_bin NOT NULL
+  `image` varchar(50) COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Дамп данных таблицы `payment`
+--
+
+INSERT INTO `payment` (`id_payment`, `name`, `description_payment`, `image`) VALUES
+(1, 'Приват24', 'Это один из наиболее удобных и экономных сервисов по оплате покупок. Используя сервис Приват24, вы можете оплатить свои покупки, не выходя из дома.', 'p24.jpg'),
+(2, 'наложенный платеж', 'Расчет при получении или «наложенный платеж» производится исключительно через услуги Новой Почты. Заказ оплачивается при получении посылки. ', 'nalogNP.png');
 
 -- --------------------------------------------------------
 
@@ -347,9 +475,9 @@ INSERT INTO `type` (`id_type`, `name_type`) VALUES
 
 CREATE TABLE `users` (
   `id_user` int(10) NOT NULL,
-  `name_user` varchar(30) COLLATE utf8_bin NOT NULL,
+  `name` varchar(30) COLLATE utf8_bin NOT NULL,
   `email_user` varchar(30) COLLATE utf8_bin NOT NULL,
-  `phone_user` varchar(15) COLLATE utf8_bin NOT NULL,
+  `phone` varchar(15) COLLATE utf8_bin NOT NULL,
   `password` varchar(200) COLLATE utf8_bin NOT NULL,
   `surname` varchar(100) COLLATE utf8_bin DEFAULT NULL,
   `city` varchar(30) COLLATE utf8_bin DEFAULT NULL,
@@ -361,11 +489,21 @@ CREATE TABLE `users` (
 -- Дамп данных таблицы `users`
 --
 
-INSERT INTO `users` (`id_user`, `name_user`, `email_user`, `phone_user`, `password`, `surname`, `city`, `address`, `branchNP`) VALUES
-(1, 'vas vasych', 'vasya1985@ukr.net', '+380985461728', '$2b$05$4.1S0tdyypNOj8IZDxT5.ORGY.tndmI8vDLTdhvtR5FcDINUfBIai', NULL, NULL, NULL, NULL),
-(2, 'mila', 'mila@ukr.net', '+380671151412', '$2b$05$ZeEF8kIP2kZiWcANZnwKNuwzzDJuP8UJAItQlilyxmau/dz8150M6', NULL, NULL, NULL, NULL),
-(3, 'bony', 'bony@ukr.net', '+380675283658', '$2b$05$rMfHixS6xctn0zE0jwiU..Qbp0jAySVS9kpdZuegBurJGXc/e1P5i', NULL, NULL, NULL, NULL),
-(4, 'vova', 'vava@gmail.com', '+380671152478', '$2b$05$yVTUj3sSls2JMrHvEPGTseu/I0/UnXJC5ANYqGrZEg5p7AuGdmWk.', NULL, NULL, NULL, NULL);
+INSERT INTO `users` (`id_user`, `name`, `email_user`, `phone`, `password`, `surname`, `city`, `address`, `branchNP`) VALUES
+(1, 'Мила', 'mila@test.net', '+380985461728', '$2b$05$TiBULFCQP8GsYt2DfA6JSO9Ge0dkrs.dlnKn3zvpIrD2cMbWRC1jK', 'Шурина', 'Николаев', 'ул.Васляева, 89 кв.63', 6),
+(2, 'galina', 'galinath1985@ukr.net', '+380501425638', '$2b$05$PPZZ1/2pXOyk4m09Z6f90.OWWbEXJBOrKoUB0AV3.mF94Ebhga2Lu', 'Владимирович', 'Чернигов', 'ул.Южная, 14 кв. 58', 12),
+(3, 'der', 'erere', '+380985461728', '$2b$05$H2upqYxPTnDHeragIt4boe0Dk1LDY2k/8QHAIljASs2HN3mh7g3R.', NULL, NULL, NULL, NULL),
+(5, 'Людмила', 'luda@test.com', '+380985145628', '$2b$05$RklbfmZOoxtbgcC3aT6kHuljkr4Ze3AqxTLyuWVLNb5CEcU0PmvQe', 'Попова', 'Николаев', 'Киев, ул.Владимирская 123, кв. 258', 25),
+(6, 'Владимир', 'vladimir@test.net', '+380501425638', '$2b$05$3Khu5zKDJwBM74GOlmmONuESYFs1.sQPrByl0EkqT6m4Y6wNXvt0C', NULL, NULL, NULL, NULL),
+(7, 'Петр', 'petr@ukr.net', '+380985461728', '$2b$05$VmK/LLf/GrG0WsU4Sgy5DeFIjkqTZClMS6Af0HJ6IReqevUbS8Jdm', 'Петров', 'Запорожье', 'ул.Южная 25', 13),
+(8, 'Светлана', 'sveta@ukr.net', '+380635741258', '$2b$05$HHcztO2FsDnYh8pYcq4H9OW23CHThwNy4wc3igA9.CGV.zAvZxdQW', 'Филонок', 'Николаев', 'ул.Советская, 25', 36),
+(9, 'Виталий', 'vitaliy@test.net', '+380675148963', '$2b$05$XeFS7wWvcfMg2LY8aW3j5eOCvgqCeokIo6B2oPE5tgcjTJ2tRWUiG', 'Витальевич', 'Одесса', 'ул.Ломоносова, 456', 63),
+(10, 'Татьяна', 'tat@ukr.net', '+380501425638', '$2b$05$njbqUwCkcKQIq2HVvoxA9eE29dnYQPWQHI.wYoW2othY2LufBmAd2', 'Попова', 'Херсон', 'ул.Васляева, 78', 7),
+(11, 'Наталья', 'nata@test.com', '+380985461728', '$2b$05$TWhMOoXhv/fcc20Fn6lQBuyVI0MkmmbMn0dtbRRvvRQHZ6p0BTKbC', 'Натальевна', 'Одесса', 'ул.Владимирская 47, кв.14', 58),
+(12, 'Борис', 'boris@test.net', '+380985461728', '$2b$05$F0JIXQhBqQ7mGDdhtMD0.ek80CI6omiHwxdNHaoiH8z7D5BBO1/x.', 'Борисович', 'Николаев', 'ул.Южная 25', 63),
+(13, 'Алексей', 'ales@ukr.net', '+380985461728', '$2b$05$MXIXueoundyMGDhgBuenxOCT1nekisOQo.Fgfpz09ARHOvvCwZ5jW', NULL, NULL, NULL, NULL),
+(14, 'Алекс', 'alex@gmail.com', '+380985461728', '$2b$05$Qu4GB9BInfKrhKPRF5k95.Beke0Qp1OGL625RLkVbK3J3uBvVdgpS', 'Алексеевич', 'Житомир', 'ул.Житомирская, 14', 14),
+(15, 'Даниэль', 'dan@test.net', '+380501425638', '$2b$05$KcBBKt5PaSeAHBvhuGCYpuenmI4Pt15YTcJxGexLwPnOaROZ.mCMy', 'Попов', 'Днепр', 'ул.Южная, 25', 78);
 
 --
 -- Индексы сохранённых таблиц
@@ -408,17 +546,16 @@ ALTER TABLE `deliveries`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`id_order`),
-  ADD KEY `id_user` (`id_user`),
   ADD KEY `id_payment` (`id_payment`),
-  ADD KEY `id_delivery` (`id_delivery`);
+  ADD KEY `id_delivery` (`id_delivery`),
+  ADD KEY `id_user` (`id_user`);
 
 --
 -- Индексы таблицы `order_details`
 --
 ALTER TABLE `order_details`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `id_order` (`id_order`),
-  ADD KEY `id_product` (`id_product`);
+  ADD KEY `id_product` (`id_product`),
+  ADD KEY `id_order` (`id_order`);
 
 --
 -- Индексы таблицы `payment`
@@ -475,7 +612,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id_cart` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_cart` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT для таблицы `categories`
@@ -493,25 +630,19 @@ ALTER TABLE `color`
 -- AUTO_INCREMENT для таблицы `deliveries`
 --
 ALTER TABLE `deliveries`
-  MODIFY `id_delivery` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_delivery` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблицы `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id_order` int(10) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `order_details`
---
-ALTER TABLE `order_details`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_order` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT для таблицы `payment`
 --
 ALTER TABLE `payment`
-  MODIFY `id_payment` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_payment` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблицы `products`
@@ -541,7 +672,7 @@ ALTER TABLE `type`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_user` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_user` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
@@ -564,16 +695,16 @@ ALTER TABLE `cart_to_products`
 -- Ограничения внешнего ключа таблицы `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`),
   ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`id_payment`) REFERENCES `payment` (`id_payment`),
-  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`id_delivery`) REFERENCES `deliveries` (`id_delivery`);
+  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`id_delivery`) REFERENCES `deliveries` (`id_delivery`),
+  ADD CONSTRAINT `orders_ibfk_4` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`);
 
 --
 -- Ограничения внешнего ключа таблицы `order_details`
 --
 ALTER TABLE `order_details`
-  ADD CONSTRAINT `order_details_ibfk_1` FOREIGN KEY (`id_order`) REFERENCES `orders` (`id_order`),
-  ADD CONSTRAINT `order_details_ibfk_2` FOREIGN KEY (`id_product`) REFERENCES `products` (`id_prod`);
+  ADD CONSTRAINT `order_details_ibfk_2` FOREIGN KEY (`id_product`) REFERENCES `products` (`id_prod`),
+  ADD CONSTRAINT `order_details_ibfk_3` FOREIGN KEY (`id_order`) REFERENCES `orders` (`id_order`);
 
 --
 -- Ограничения внешнего ключа таблицы `products`

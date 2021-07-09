@@ -1,42 +1,41 @@
 import React, {useEffect} from 'react';
 import Row from "react-bootstrap/Row";
-import ProductItem from "./ProductItem";
 import {useDispatch, useSelector} from "react-redux";
-import {loadProducts} from "../store/actions/products";
-import {getProductImageUrl} from '../utils/consts';
-
+import ProductItem from "./ProductItem";
+import {getProductImageUrl} from "../utils/consts";
+import {loadProducts} from "../store/actions/productActions";
+import Loading from "./Loading";
 
 
 const ProductList = () => {
-
     const dispatch = useDispatch();
 
-    const { products, fetchingProducts, productsError } = useSelector(
-        state => state.productList
-    );
-
+    const { loading, results } = useSelector(state => state.productList);
 
     useEffect(() => {
-        dispatch(loadProducts());
+        dispatch(loadProducts(1));
     }, [dispatch]);
+
+
     return (
+        <>
+            {loading ? <Loading/> :
 
-            <Row className="d-flex justify-content-between">
-                {!fetchingProducts && !productsError && products && (
-                    <>
-                        {  products.map(product => {
-                            const cloneItem = {...product};
+                <Row className="d-flex justify-content-between">
 
-                            cloneItem.imgSrc = getProductImageUrl(product.image);
+                    { results && results.length >= 0 && (results.map(product => {
+                    const cloneItem = {...product};
 
-                            return (
-                                <ProductItem key={product.id_prod} product={cloneItem}/>
-                            )
-                        })
-                        }
-                    </>
-                )}
-            </Row>
+                    cloneItem.imgSrc = getProductImageUrl(product.image);
+
+                    return (
+                    <ProductItem key={product.id_prod} product={cloneItem}/>
+                    )
+                }))
+                    }
+                </Row>
+            }
+        </>
     );
 };
 

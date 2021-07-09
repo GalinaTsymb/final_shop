@@ -1,7 +1,8 @@
 import {
-    FETCH_Cat_STARTED,
-    FETCH_Cat_FAILURE,
-    FETCH_Cat_SUCCESS
+    CATEGORY_STARTED,
+    CATEGORY_FAILURE,
+    CATEGORY_SUCCESS,
+    CHANGE_CATEGORY
 
 } from "./types";
 
@@ -9,17 +10,17 @@ import ApiService from "../../services/apiServices";
 
 
 const loadCategoriesSuccess = (categories) => ({
-    type: FETCH_Cat_SUCCESS,
+    type: CATEGORY_SUCCESS,
     payload: [
         ...categories,
     ],
 });
 const loadCategoriesStarted = () => ({
-    type: FETCH_Cat_STARTED,
+    type: CATEGORY_STARTED,
 });
 
 const loadCategoriesFailure = () => ({
-    type: FETCH_Cat_FAILURE,
+    type: CATEGORY_FAILURE,
 });
 
 
@@ -36,6 +37,6 @@ export const loadCategories = () => async (dispatch) => {
         dispatch(loadCategoriesFailure());
     }
 };
-
-
-
+export const changeCategory = (id_category) => (dispatch) => {
+    dispatch({type: CHANGE_CATEGORY, payload: id_category});
+};

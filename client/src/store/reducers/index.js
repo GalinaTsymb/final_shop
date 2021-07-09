@@ -1,16 +1,24 @@
 import { combineReducers } from 'redux';
 
-import categoriesReducer from './categories';
-import {reducerProductList, productDetailsReducer} from './products';
-import {reducerUserRegister, reducerUserLogin, reducerGetUser} from './user';
-import {reducerGetUserCart} from'./cart'
+import { productListReducer, productDetailsReducer} from "./productReducers";
+import { categoryReducer } from "./categoryReducers";
+import { reducerUserLogin, reducerUserRegister, reducerUserProfile} from "./userReducers";
+import { cartReducer } from "./cartReducers";
+import {paymentListReducer} from "./paymentReducers";
+import {deliveryListReducer} from "./deliveryReducers";
+import {orderReducer} from "./orderReducers";
+
 
 export const reducer = combineReducers({
-    categories: categoriesReducer,
-    productList: reducerProductList,
+
+    productList:    productListReducer,
+    category:       categoryReducer,
     productDetails: productDetailsReducer,
-    userRegistr: reducerUserRegister,
-    userLogin: reducerUserLogin,
-    userProfile: reducerGetUser,
-    userCart: reducerGetUserCart
+    payment:        paymentListReducer,
+    delivery:       deliveryListReducer,
+    cart:           cartReducer,
+    userRegistr:    reducerUserRegister,
+    userLogin:      reducerUserLogin,
+    userProfile:    reducerUserProfile,
+    order:          orderReducer
 });
